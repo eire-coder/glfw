@@ -1016,7 +1016,14 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
             break;
         }
-
+         case  WM_NCCALCSIZE:
+        {
+            if (_glfw.hints.window.titlebar)
+                break;
+            if (lParam)
+                return 0;
+            break;
+        }
         case WM_SIZE:
         {
             const int width = LOWORD(lParam);
@@ -1261,6 +1268,75 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
             DragFinish(drop);
             return 0;
+        }
+        case WM_ACTIVATE:
+
+        {
+            if (_glfw.hints.window.titlebar)
+                break;
+
+            MARGINS margins = { 0 };
+
+            auto hr = DwmExtendFrameIntoClientArea(hWnd, &margins);
+
+            if (!SUCCEEDED(hr))
+            {
+
+            }
+            break;
+        }
+        case WM_NCHITTEST:
+        {
+            if (_glfw.hints.window.titlebar)
+                break;
+
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+
+            ScreenToClient(hWnd, &pt);
+
+            RECT rc;
+
+            GetClientRect(hWnd, &rc);
+
+            int titlebarHittest = 0;
+
+            _glfwInputTitleBarHitTest(window, pt.x, pt.y, &titlebarHittest);
+
+            if (titlebarHittest)
+            {
+                return HTCAPTION;
+            }
+            else
+            {
+                enum { left = 1, top = 2, right = 4, bottom = 8 };
+
+                int hit = 0;
+
+                if (pt.x < border_thickness.left)               hit |= left;
+
+                if (pt.x > rc.right - border_thickness.right)   hit |= right;
+
+                if (pt.y < border_thickness.top)                hit |= top;
+
+                if (pt.y > rc.bottom - border_thickness.bottom) hit |= bottom;
+
+                if (hit & top && hit & left)        return HTTOPLEFT;
+
+                if (hit & top && hit & right)       return HTTOPRIGHT;
+
+                if (hit & bottom && hit & left)     return HTBOTTOMLEFT;
+
+                if (hit & bottom && hit & right)    return HTBOTTOMRIGHT;
+
+                if (hit & left)                     return HTLEFT;
+
+                if (hit & top)                      return HTTOP;
+
+                if (hit & right)                    return HTRIGHT;
+
+                if (hit & bottom)                   return HTBOTTOM;
+                return HTCLIENT;
+            }
         }
     }
 
