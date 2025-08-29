@@ -906,6 +906,8 @@ GLFWAPI int glfwGetWindowAttrib(GLFWwindow* handle, int attrib)
             return window->resizable;
         case GLFW_DECORATED:
             return window->decorated;
+        case GLFW_TITLEBAR:
+            return _glfw.hints.window.titlebar;
         case GLFW_FLOATING:
             return window->floating;
         case GLFW_AUTO_ICONIFY:
@@ -965,6 +967,14 @@ GLFWAPI void glfwSetWindowAttrib(GLFWwindow* handle, int attrib, int value)
             window->decorated = value;
             if (!window->monitor)
                 _glfw.platform.setWindowDecorated(window, value);
+            return;
+
+        case GLFW_TITLEBAR:
+			if (_glfw.hints.window.titlebar == value)
+            	return;
+            _glfw.hints.window.titlebar = value;
+    	    if (!window->monitor)
+                _glfw.platform.setWindowTitleBar(window, value);
             return;
 
         case GLFW_FLOATING:
